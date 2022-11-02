@@ -1,0 +1,27 @@
+const HDWalletProvider = require('@truffle/hdwallet-provider');
+const Web3 = require('web3');
+
+const { abi, evm } = require('./compile');
+
+provider = new HDWalletProvider(
+   "net rally inmate gas finish boy balcony tree ceiling lucky cattle bird",
+  // remember to change this to your own phrase!
+  "https://goerli.infura.io/v3/b0305f26190f40ee911e1e6e4f149b17"
+  // remember to change this to your own endpoint!
+);
+
+const web3 = new Web3(provider);
+
+const deploy = async () => {
+  const accounts = await web3.eth.getAccounts();
+
+  console.log('Attempting to deploy from account', accounts[0]);
+
+  const result = await new web3.eth.Contract(abi)
+      .deploy({ data: evm.bytecode.object})
+      .send({ gas: '3000000', from: accounts[0] });
+
+  console.log('Contract deployed to', result.options.address);
+  provider.engine.stop();
+};
+deploy();
