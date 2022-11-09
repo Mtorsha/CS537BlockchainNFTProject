@@ -1,89 +1,116 @@
-// SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.9;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.4;
 
-contract ClickStore {
-    address public manager;    //manager
-    uint256 numImage;   //image counter
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-    struct Image {                    //create struct Image 
-        address payable Art_maker;          //the address for the original photographer
-        uint256 NFT_number;       //NFT number, will be incremented by 1
-        address payable owner;            //holder of the Image
-        uint256 price;              //set price of Image to sell
-        string NTF_Storage_Link;     //link of NFT
-        uint256 artist_fees;         //the price for resell
-        bool sell_complete;          //status for complete
-        bool sell_resell;            //status for resell
+contract Image_NFT_MarketPlace is ERC721("DAppFi", "DAPP"), Ownable {
+    string public NTF_Storage_Link =
+        "https://bafybeiaarrkflari2ed5n43sm45zjfqizuminzridsrvetbyxe4kx4fjfi.ipfs.nftstorage.link/";
+    string public followed_Extension = ".json"; /* file extension of metadata*/
+    address public art_maker; /* account where artist fees will be paid*/
+    uint256 public artist_fees; /* amount of artist fees*/
+
+    struct Image {   /* to save metadata of images like image ID, address of the seller, price at which it will be sold*/
+        uint256 tokenId;
+        address payable seller;
+        uint256 price;
     }
+    Image[] public images;
 
-    Image [] images;     //array for storing every image
-    Image [] sold_images;     //array for storing every image
-    Image [] resell_images;     //array for storing every image
-    mapping(uint256 => bool) public sold;  //mapping for storing sold or not
-    mapping(uint256 => bool) public resell;  //mapping for storing resell or not
+    event ImageBought(
+        uint256 indexed tokenId,
+        address indexed seller,
+        address buyer,
+        uint256 price
+    );
+    event ImageRelisted(
+        uint256 indexed tokenId,
+        address indexed seller,
+        uint256 price
+    );
 
-    //initialize the manager in the constructor
-    constructor()  {
-        manager = msg.sender;
-    }
-
-    modifier onlyManager() {
+    /* In constructor we initalize artist fee, art_maker address and prices of music nfts*/
+    constructor(
+        uint256 _artist_fees,
+        address _art_maker,
+        uint256[] memory _prices
+    ) payable {
         require(
-            msg.sender == manager,
-            "Only the campaign manager can call this function."
+            _prices.length * _artist_fees <= msg.value,  /* deployer must send artist fees to art_maker as it selling art_maker's art on market place and gas sent by owner while deploying the contarct must be number of images X artist fee*/
+            "Deployer must pay artist fee for each token listed on the marketplace"
         );
-        _;
+        artist_fees = _artist_fees;
+        art_maker = _art_maker;
+        for (uint8 i = 0; i < _prices.length; i++) {
+            require(_prices[i] > 0, "Price must be greater than 0");
+            _mint(address(this), i);  /* this function is inheritaed from ERC721 contact creats NFT of image*/
+            images.push(Image(i, payable(msg.sender), _prices[i])); /* pushing the NFT/image into struct*/
+        }
     }
 
-    function createImage(uint256 price_set, string memory link) public payable  {
-       // require ((0 < price_set), "Price should be more than minimum");
-        Image memory newImage;
-        newImage.Art_maker =  payable(msg.sender);
-        newImage.NFT_number;
-        newImage.owner = payable(msg.sender);
-        newImage.price = price_set*(1 ether);
-        newImage.NTF_Storage_Link = link;
-        newImage.artist_fees = 0;
-        newImage.sell_complete = false;
-        newImage.sell_resell = false;
+    /* Updates the artist fee of the contract : only by manager */
+    function updateartist_fees(uint256 _artist_fees) external onlyOwner {
+        artist_fees = _artist_fees;
     }
 
-    function Update_artist_part(uint256 index, string memory link, uint256 fee) public {
-        require(msg.sender==images[index].Art_maker, "Only the art_maker can change the content");
-        images[index].NTF_Storage_Link = link;
-        images[index].artist_fees = fee; 
+    /* Creates the sale of a image nft listed on the marketplace */
+    /* Transfers ownership of the nft, as well as funds between parties */
+    function buyImage(uint256 _tokenId) external payable {
+        uint256 price = images[_tokenId].price;
+        address seller = images[_tokenId].seller;
+        require(
+            msg.value == price,
+            "Please send the asking price in order to complete the purchase"
+        );
+        images[_tokenId].seller = payable(address(0)); /* setting seller's address for that NFT to zero as no one is selling it and That NFT is sold*/
+        _transfer(address(this), msg.sender, _tokenId); /* this function is inheritaed from ERC721 contact transfers NFT , now it tranfering NFT from contract to buyer*/
+        payable(art_maker).transfer(artist_fees);
+        payable(seller).transfer(msg.value);
+        emit ImageBought(_tokenId, seller, msg.sender, price); /* this event will log details of purchase on block in blockchain and tells NFT is moved from contract to buyer*/
     }
 
-    function Buy_Image(uint256 index) public payable {
-        require(images[index].price <= msg.value, "the amount of paymen should be more than the price tag");
-        require(images[index].sell_complete == false, "the resell status should be false");
-        images[index].sell_complete = true;  //set complete status as true
-        images[index].owner = payable(msg.sender);   //set image owner as the buyer
-        sold[index] = true;    //set sold mapping as true
-        sold_images.push(images[index]);  //add Image to sold array
+    /* Allows someone to resell their image nft */
+    function resellImage(uint256 _tokenId, uint256 _price) external payable {
+        require(msg.value == artist_fees, "Must pay royalty"); /* here user must pay artist_fees before putting any NFT on sell*/
+        require(_price > 0, "Price must be greater than zero");
+        images[_tokenId].price = _price; /* user deciding new price of the NFT*/
+        images[_tokenId].seller = payable(msg.sender); /* user */
+
+        _transfer(msg.sender, address(this), _tokenId); /* transfers NFT from user/seller to contract 58:40*/
+        emit ImageRelisted(_tokenId, msg.sender, _price); /* this event will log details of purchase on block in blockchain and tells NFT is moved from user/seller to contarct*/
     }
 
-    function Resell_Image(uint256 index) public payable {
-        require(images[index].sell_resell == false, "the resell status should be false");
-        images[index].sell_resell = true;  //set resell status as true
-        images[index].sell_complete = false;  //set complete status as false
-        images[index].price = msg.value;   //set value 
-        delete sold[index]; //deleteing image from sold mapping
-        delete sold_images[index]; //deleting image from sold array
-        resell[index] = true;  //set resell mapping as true
-        resell_images.push(images[index]);  //add Image to resell array
+    /* Fetches all the images currently listed for sale on market place (those are belong to contract: tokens which hasn't been sold not even once and tokens which are put on the sell by users*/
+    function getAllUnsoldImages() external view returns (Image[] memory) {
+        uint256 unsoldCount = balanceOf(address(this));
+        Image[] memory tokens = new Image[](unsoldCount);
+        uint256 currentIndex;
+        for (uint256 i = 0; i < images.length; i++) {
+            if (images[i].seller != address(0)) {
+                tokens[currentIndex] = images[i];
+                currentIndex++;
+            }
+        }
+        return (tokens);
     }
 
-    function List_Image() public view returns (Image [] memory) {
-        return images;
+    /* Fetches all the images owned by the user and not listed on marketplace/contact to sell*/
+    function getMyImages() external view returns (Image[] memory) {
+        uint256 myTokenCount = balanceOf(msg.sender);
+        Image[] memory tokens = new Image[](myTokenCount);
+        uint256 currentIndex;
+        for (uint256 i = 0; i < images.length; i++) {
+            if (ownerOf(i) == msg.sender) {
+                tokens[currentIndex] = images[i];
+                currentIndex++;
+            }
+        }
+        return (tokens);
     }
 
-    function List_Sold() public view returns (Image [] memory) {
-        return sold_images;
-    }
-
-    function List_Resell() public view returns (Image [] memory) {
-        return resell_images;
-    }
+    /* Internal function that gets the NTF_Storage_Link initialized in the constructor */
+    //function _NTF_Storage_Link() internal view virtual override returns (string memory) {
+        //return NTF_Storage_Link;
+    //}
 }
-

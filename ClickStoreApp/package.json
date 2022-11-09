@@ -3,13 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.0",
+    "@openzeppelin/contracts": "^4.5.0",
     "@testing-library/jest-dom": "^5.11.10",
     "@testing-library/react": "^11.2.6",
     "@testing-library/user-event": "^12.8.3",
     "@truffle/hdwallet-provider": "^2.1.0",
+    "bootstrap": "^5.2.2",
     "ganache-cli": "^6.12.2",
     "mocha": "^10.1.0",
     "react": "^17.0.2",
+    "react-bootstrap": "^2.6.0",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
     "solc": "^0.8.9",
@@ -39,5 +43,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "-": "^0.0.1",
+    "hardhat": "^2.12.2"
   }
 }
