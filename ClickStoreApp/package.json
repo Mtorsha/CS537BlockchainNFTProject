@@ -17,6 +17,7 @@
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
     "solc": "^0.8.9",
+    "truffle-hdwallet-provider": "^1.0.17",
     "web-vitals": "^1.1.1",
     "web3": "^1.6.0"
   },
