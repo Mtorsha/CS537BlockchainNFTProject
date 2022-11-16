@@ -1,6 +1,7 @@
 import React from "react";
 import { Menu } from "semantic-ui-react";
-import Image from "./Image";
+import BuyImage from "./BuyImage";
+import ResellImage from "./ResellImage";
 import { BrowserRouter, Link, Routes, Route } from "react-router-dom";
 import { Navbar, Nav, Button, Container, Card, Row, Col } from 'react-bootstrap'
 
@@ -14,8 +15,8 @@ const Header = () => {
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Nav className="me-auto">
               <Nav.Link href="/">Home</Nav.Link>
-              <Nav.Link href="/Image">Buy</Nav.Link>
-              <Nav.Link href="#link">Resales</Nav.Link>
+              <Nav.Link href="/BuyImage">Buy</Nav.Link>
+              <Nav.Link href="/ResellImage">Resell</Nav.Link>
               </Nav>
             </Container>
         </Navbar>

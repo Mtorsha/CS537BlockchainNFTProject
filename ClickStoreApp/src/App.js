@@ -9,9 +9,10 @@ import React from "react";
 //import ClickStore from "./ClickStore";
 import Layout from "./Layout";
 import { useState } from 'react';
-import Image from "./Image";
-import NewImage from "./newImage";
-import Main from "./Main";
+import BuyImage from "./BuyImage";
+import NewImage from "./NewImage";
+import ListImage from "./ListImage";
+import ResellImage from "./ResellImage";
 
 import { BrowserRouter, Link, Routes, Route } from "react-router-dom";
 import { Spinner, Navbar, Nav, Button, Container, Card, Row, Col } from 'react-bootstrap'
@@ -29,8 +30,9 @@ function App() {
       <div>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Main/>}/>
-          <Route path="/Image" element={<Image/>} />
+          <Route path="/" element={<ListImage/>}/>
+          <Route path="/BuyImage" element={<BuyImage/>} />
+          <Route path="/ResellImage" element={<ResellImage/>} />
           <Route path="/newImage" element={<NewImage/>} />
         </Routes>
       </BrowserRouter>
