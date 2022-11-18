@@ -1,27 +1,71 @@
 import ImageForResell from "./ImageForResell";
+import React, { Component } from "react";
+import ImageForBuy from "./ImageForBuy";
 import { BrowserRouter, Link, Routes, Route } from "react-router-dom";
 import { Spinner, Navbar, Nav, Card, Button, Container, Row, Col } from 'react-bootstrap'
+import { Grid, Form, Message, Input } from "semantic-ui-react";
+import web3 from "./web3";
+import ClickStore from "./ClickStore";
 
-const ResellImage = (props) => {
-
-  const buy = () => {
-    console.log('buy');
+class ResellImage extends Component {
+  state = {
+    loading: false,
+    price: "",
+    id: "",
+    price_sell: "",
+    errorMessage: "",
+    boughtItem: [],
+    images: [],
   };
 
-  return (
-    <Container>
-    <Row>
-      <Col><ImageForResell id= "Beach" image="https://bafybeibvwrrt6obpfxb4xxe7lm5bmbeaiowghxq6r5kszcgf5jtdjz5tyu.ipfs.nftstorage.link/"/></Col>
-      <Col><ImageForResell id= "Joshua Tree" image="https://bafybeifiujz7it44xbohaedjfq2fvvdh5gvfir72tn7t7uhbbbftssxfkm.ipfs.nftstorage.link/"/></Col>
-      <Col><ImageForResell id= "Desert" image="https://bafybeicz7nmhvaafus3kauixylekret7ru7u3ixr233jcj7asyge5o7i3y.ipfs.nftstorage.link/"/></Col>
-    </Row>
-    <br></br>
-    <Row>
-      <Col><ImageForResell id= "Sunset" image="https://bafybeihhw3ppgffo3dbnr52ec72uh4t42psnafwfjeflfwislqqfnerwaq.ipfs.nftstorage.link/"/></Col>
-      <Col><ImageForResell id= "Sky" image="https://bafybeigb6bjzdmqwnu6jwy7kl5b5jvwqzcpebb7mjitlxskckhuro4vnii.ipfs.nftstorage.link/"/></Col>
-    </Row>
-    </Container>
-  );
+  async componentDidMount() {
+    const accounts = await web3.eth.getAccounts();
+    const images = await ClickStore.methods.getImages().call();
+    const manager = await ClickStore.methods.manager().call();
+    this.setState({ images: images });
+  }
 
+  ResellImage = async (event) => {
+    event.preventDefault();
+    this.setState({ loading: true});
+    const accounts = await web3.eth.getAccounts();
+    try {
+      await ClickStore.methods.resellImage(this.state.id, this.state.price_sell).send({
+        from: accounts[0],
+        value: this.state.price,
+        //web3.utils.toWei(this.state.price, "ether"),
+        gas: "30000000",
+      });
+    } catch (err) {
+      this.setState({ errorMessage: err.message, loading: false });
+    }
+    this.setState({ loading: false });
+  }
+
+  showImage() {
+    return this.state.images.map((image) => {
+        return (
+          <ImageForResell
+            id={image.tokenId}
+            price={image.price}
+            uri={image.uri}
+            seller={image.seller}
+            boughtStatus={image.statusForBought}
+            resellStatus={image.statusForResell}
+          />
+        );
+    });
+  }
+
+  render() {
+    return (
+      <Container>
+      <Row>
+        {this.showImage()}
+      </Row>
+      </Container>
+    );
+  }
 };
+
 export default ResellImage;

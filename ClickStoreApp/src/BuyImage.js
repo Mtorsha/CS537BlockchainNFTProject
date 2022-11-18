@@ -1,28 +1,56 @@
+import React, { Component } from "react";
 import ImageForBuy from "./ImageForBuy";
 import { BrowserRouter, Link, Routes, Route } from "react-router-dom";
 import { Spinner, Navbar, Nav, Card, Button, Container, Row, Col } from 'react-bootstrap'
+import { Grid, Form, Message, Input } from "semantic-ui-react";
+import web3 from "./web3";
+import ClickStore from "./ClickStore";
 
-const BuyImage = (props) => {
+class BuyImage extends Component {
+  state = {
+    loading: false,
+    price: "",
+    id: "",
+    errorMessage: "",
+    boughtItem: [],
+    images: [],
+    bought: "Bought",
+    id_array: [],
+    price_array: [],
 
-  const buy = () => {
-    console.log('buy');
   };
 
-  return (
-    <Container>
-    <Row>
-      <Col><ImageForBuy id= "Beach" image="https://bafybeibvwrrt6obpfxb4xxe7lm5bmbeaiowghxq6r5kszcgf5jtdjz5tyu.ipfs.nftstorage.link/"/></Col>
-      <Col><ImageForBuy id= "Joshua Tree" image="https://bafybeifiujz7it44xbohaedjfq2fvvdh5gvfir72tn7t7uhbbbftssxfkm.ipfs.nftstorage.link/"/></Col>
-      <Col><ImageForBuy id= "Desert" image="https://bafybeicz7nmhvaafus3kauixylekret7ru7u3ixr233jcj7asyge5o7i3y.ipfs.nftstorage.link/"/></Col>
-    </Row>
-    <br></br>
-    <Row>
-      <Col><ImageForBuy id= "Sunset" image="https://bafybeihhw3ppgffo3dbnr52ec72uh4t42psnafwfjeflfwislqqfnerwaq.ipfs.nftstorage.link/"/></Col>
-      <Col><ImageForBuy id= "Sky" image="https://bafybeigb6bjzdmqwnu6jwy7kl5b5jvwqzcpebb7mjitlxskckhuro4vnii.ipfs.nftstorage.link/"/></Col>
-    </Row>
-    </Container>
-  );
+  async componentDidMount() {
+    const accounts = await web3.eth.getAccounts();
+    const images = await ClickStore.methods.getImages().call();
+    const manager = await ClickStore.methods.manager().call();
+    this.setState({ images: images });
+  }
 
+  showImage() {
+    return this.state.images.map((image) => {
+
+      return (
+        <ImageForBuy
+          id={image.tokenId}
+          price={image.price}
+          uri={image.uri}
+          seller={image.seller}
+          boughtStatus={image.statusForBought}
+        />
+      );
+    });
+  }
+
+  render() {
+    return (
+      <Container>
+      <Row>
+        {this.showImage()}
+      </Row>
+      </Container>
+    );
+  }
 };
 
 export default BuyImage;
