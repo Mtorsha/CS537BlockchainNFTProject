@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 contract Image_NFT_MarketPlace is ERC721("DAppFi", "DAPP"), ERC721URIStorage, Ownable {
 
     struct Artist {
+        uint256 artistId;
         address payable artistAddress;
         uint256 artist_fees;
         uint256 price;
@@ -31,6 +32,7 @@ contract Image_NFT_MarketPlace is ERC721("DAppFi", "DAPP"), ERC721URIStorage, Ow
 
     uint256 tokenCounter;
     uint256 mangerIncome;
+    uint256 artistCounter;
 
     constructor() {
         manager = payable(msg.sender);
@@ -49,7 +51,8 @@ contract Image_NFT_MarketPlace is ERC721("DAppFi", "DAPP"), ERC721URIStorage, Ow
            price>0,
            "Price must be greater than 0"
         );
-         artists.push(Artist(payable(msg.sender), _artist_fees, price, uri,false)); /* pushing the NFT/image into struct*/
+         artists.push(Artist(artistCounter,payable(msg.sender), _artist_fees, price, uri,false));
+         artistCounter++;
     }
 
     function mintArt(uint256 index) public onlyManager payable{

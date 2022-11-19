@@ -3,15 +3,14 @@ import React, { Component } from "react";
 import {ethers} from 'ethers'
 import './ListImage.css';
 import { BrowserRouter, Link, Routes, Route } from "react-router-dom";
-import { Form, Button, Input, Message, Grid, Table, Header } from "semantic-ui-react";
+import { Form, Button, Input, Message, Grid, Table } from "semantic-ui-react";
 
 import web3 from "./web3";
 import ClickStore from "./ClickStore";
-
+// const { Header, Row, HeaderCell, Body } = Table;
 class ListImage extends Component {
   state = {
     loading: false,
-    buttonClick: false,
     errorMessage: "",
     artist_fee: "",
     price: "",
@@ -19,7 +18,8 @@ class ListImage extends Component {
     artists: [],
     user: "",
     manager: "",
-    artistBalance: ""
+    artistBalance: "",
+    pendingArtists: []
   };
 
   async componentDidMount() {
@@ -35,22 +35,24 @@ class ListImage extends Component {
       this.setState({ artists: artists});
     }
     console.log(artists);
+    const arr = this.state.artists.filter( artist => artist.registered==false);
+    this.setState({ pendingArtists: arr});
   }
 
-  // onClick = async (event) => {
-  //   event.preventDefault();
-  //   this.setState({ loading: true});
-  //
-  //   try {
-  //     const artists = await ClickStore.methods.artist("0").call();
-  //     console.log(artists);
-  // //    const accounts = await web3.eth.getAccounts();
-  //   //  console.log(accounts);
-  //   } catch (err) {
-  //     this.setState({ errorMessage: err.message });
-  //   }
-  //   this.setState({ loading: false });
-  // };
+  onApprove= async(event, i,artist_fees) => {
+      // console.log('in',i,artist_fees,web3.utils.toWei(artist_fees, "ether"));
+    this.setState({ loading: true});
+    const accounts = await web3.eth.getAccounts();
+    try {
+    await ClickStore.methods.mintArt(i).send({
+      from: accounts[0],
+      value: artist_fees
+    });
+    } catch (err) {
+      this.setState({ errorMessage: err.message });
+    }
+    this.setState({ loading: false });
+  };
 
   onSubmitForm = async (event) => {
     event.preventDefault();
@@ -59,10 +61,10 @@ class ListImage extends Component {
     try {
 
       const accounts = await web3.eth.getAccounts();
-      console.log('this.state.artist_fee',typeof(this.state.artist_fee));
-      await ClickStore.methods.registerArt(this.state.artist_fee, this.state.price, this.state.url).send({
-        from: accounts[0],
-        value: web3.utils.toWei(this.state.artist_fee.toString(), "ether"), // Sends exactly 0.02 ethe
+      console.log('this.state.artist_fee',this.state.artist_fee,this.state.price);
+      await ClickStore.methods.registerArt(web3.utils.toWei(this.state.artist_fee, "ether"), web3.utils.toWei(this.state.price, "ether"), this.state.url).send({
+        from: accounts[0]
+        // web3.utils.toWei(this.state.artist_fee.toString(), "ether"), // Sends exactly 0.02 ethe
       });
 
     } catch (err) {
@@ -118,55 +120,56 @@ class ListImage extends Component {
 
   }
 
-  // showArtist() {
-  //   return this.state.artists.map((artist) => {
-  //     return (
-  //         <div>{artist}</div>
-  //     );
-  //   });
-  // }
-
   showReport(){
     //call getReport and show in the form of a table or cards
     return(<div>show the components from report</div>)
   };
 
-  showPendingRequests(){
-    //show the artists who are not yet registered in the table below. Add a button in
-    //to call mintArt in the last column just like approve request in hw11
-    const arr = this.state.artists.filter( artist => artist.registered==false)
-    return(
-      <div>show artists</div>
-    /*    <Table>
-        <Header>
-          <Row>
-            <HeaderCell>ID</HeaderCell>
-            <HeaderCell>Address</HeaderCell>
-            <HeaderCell>Artist Fee</HeaderCell>
-            <HeaderCell>Mint</HeaderCell>
-          </Row>
-        </Header>
-        <Body>{
-          arr.map((artist, index) => {
-  /*          <Cell>1</Cell>
-            <Cell>{artist.artistAddress}</Cell>
-            <Cell>{request.artist_fees}</Cell>
-            <Cell>
-                <Button color="green" basic>
+  renderRows() {
+    return this.state.pendingArtists.map((artist, index) => {
+
+      return (
+        <Table.Row key={index}>
+        <Table.Cell>{index+1}</Table.Cell>
+        <Table.Cell>{artist.artistId}</Table.Cell>
+        <Table.Cell>{artist.artistAddress}</Table.Cell>
+        <Table.Cell>{artist.artist_fees}</Table.Cell>
+        <Table.Cell>
+        <Button color="green" basic loading={this.state.loading} onClick={event => this.onApprove(event,artist.artistId,artist.artist_fees)}>
                   Approve
-                </Button>
-            </Cell>
-            <Row>
-            <Cell>1</Cell>
-            <Cell>2</Cell>
-            <Cell>3</Cell>
-            <Cell>4</Cell>
-            </Row>
-          })
-        }</Body>
+        </Button>
+        </Table.Cell>
+        </Table.Row>
+      );
+    });
+  }
+
+  showPendingRequests(){
+    if(this.state.pendingArtists.length==0)
+    {
+      return (
+      <h4> There are no pending registration requests.</h4>
+    )
+  }
+    else
+    {
+      return(
+      <Table>
+        <Table.Header>
+          <Table.Row>
+            <Table.HeaderCell>Request Number</Table.HeaderCell>
+            <Table.HeaderCell>Artist ID</Table.HeaderCell>
+            <Table.HeaderCell>Address</Table.HeaderCell>
+            <Table.HeaderCell>Artist Fee</Table.HeaderCell>
+            <Table.HeaderCell>Mint</Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          {this.renderRows()}
+        </Table.Body>
       </Table>
-      */
     );
+  }
   };
 
   render() {

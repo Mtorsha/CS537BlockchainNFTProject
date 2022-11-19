@@ -1,6 +1,6 @@
 import web3 from './web3';
 
-const address = '0x6bc786DFB6784FEf7B37Fc026801F2100f26546a';
+const address = '0x2d4f40BC81a0d13Df29D28907065d187f7Bd0EF3';
 const abi = [
 	{
 		"inputs": [],
@@ -364,6 +364,11 @@ const abi = [
 		"name": "artists",
 		"outputs": [
 			{
+				"internalType": "uint256",
+				"name": "artistId",
+				"type": "uint256"
+			},
+			{
 				"internalType": "address payable",
 				"name": "artistAddress",
 				"type": "address"
@@ -436,6 +441,11 @@ const abi = [
 		"outputs": [
 			{
 				"components": [
+					{
+						"internalType": "uint256",
+						"name": "artistId",
+						"type": "uint256"
+					},
 					{
 						"internalType": "address payable",
 						"name": "artistAddress",
