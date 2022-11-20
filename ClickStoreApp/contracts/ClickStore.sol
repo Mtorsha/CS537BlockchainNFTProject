@@ -131,7 +131,13 @@ contract Image_NFT_MarketPlace is ERC721("DAppFi", "DAPP"), ERC721URIStorage, Ow
         return images;
     }
 
-    function getReport() public onlyManager returns (
+    function createReport() public {
+        for (uint i = 0; i < artists.length; i++){
+            artistReport.push(ArtistReport(artists[i].artistAddress,balanceOf(artists[i].artistAddress)));
+        }
+    }
+
+    function getReport() public view returns (
             uint256,
             uint256,
             uint256,
@@ -153,9 +159,7 @@ contract Image_NFT_MarketPlace is ERC721("DAppFi", "DAPP"), ERC721URIStorage, Ow
             if(images[i].numSales==0)
                 neverSold++;
         }
-        for (uint i = 0; i < artists.length; i++){
-                artistReport.push(ArtistReport(artists[0].artistAddress,balanceOf(artists[0].artistAddress)));
-        }
+
         return (
             artists.length,
             images.length,

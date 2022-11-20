@@ -19,7 +19,9 @@ class ListImage extends Component {
     user: "",
     manager: "",
     artistBalance: "",
-    pendingArtists: []
+    pendingArtists: [],
+    reports: [],
+    artistData: [],
   };
 
   async componentDidMount() {
@@ -37,6 +39,15 @@ class ListImage extends Component {
     console.log(artists);
     const arr = this.state.artists.filter( artist => artist.registered==false);
     this.setState({ pendingArtists: arr});
+    let report;
+    if(this.state.user==manager){
+        await ClickStore.methods.createReport().call();
+        report = await ClickStore.methods.getReport().call();
+        var toString = Object.prototype.toString;
+        const reportsArray = Object.values(report);
+        console.log(reportsArray);
+        this.setState({ reports: reportsArray, artistData: reportsArray[6]});
+    }
   }
 
   onApprove= async(event, i,artist_fees) => {
@@ -120,9 +131,75 @@ class ListImage extends Component {
 
   }
 
+  renderRowsReports() {
+    let counter = 1
+    return this.state.reports.map((report, index) => {
+      if(counter!=6){
+        return(
+          <Table.Cell>{report}</Table.Cell>
+        )
+      counter++
+    }
+    });
+  }
+
+  renderRowsArtist() {
+    console.log(this.state.artistData)
+    return this.state.artistData.map((artist) => {
+        return(
+        //  <Table.Row key={index}>
+            <Table.Cell>{artist}</Table.Cell>
+        //  </Table.Row>
+        //  <Table.Cell>artist</Table.Cell>
+        )
+    });
+  }
+
   showReport(){
     //call getReport and show in the form of a table or cards
-    return(<div>show the components from report</div>)
+    if(this.state.reports.length==0){
+        return (
+        <h4> There are no reports.</h4>
+      )
+    }
+    else
+      {
+        return(
+        <>
+        <Table>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>Artist Total</Table.HeaderCell>
+              <Table.HeaderCell>Image Total</Table.HeaderCell>
+              <Table.HeaderCell>Total Never Sold</Table.HeaderCell>
+              <Table.HeaderCell>Total Sold</Table.HeaderCell>
+              <Table.HeaderCell>Total Relisted</Table.HeaderCell>
+              <Table.HeaderCell>Manager Income</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            <Table.Row>
+            {this.renderRowsReports()}
+            </Table.Row>
+          </Table.Body>
+        </Table>
+
+        <Table>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>Artist Address</Table.HeaderCell>
+              <Table.HeaderCell>Artist Balance</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            <Table.Row>
+            {this.renderRowsArtist()}
+            </Table.Row>
+          </Table.Body>
+        </Table>
+      </>
+      );
+    }
   };
 
   renderRows() {
@@ -145,6 +222,7 @@ class ListImage extends Component {
   }
 
   showPendingRequests(){
+
     if(this.state.pendingArtists.length==0)
     {
       return (
