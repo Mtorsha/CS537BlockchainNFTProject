@@ -41,12 +41,20 @@ class ListImage extends Component {
     this.setState({ pendingArtists: arr});
     let report;
     if(this.state.user==manager){
-        await ClickStore.methods.createReport().call();
+    //    await ClickStore.methods.createReport().call();
         report = await ClickStore.methods.getReport().call();
         var toString = Object.prototype.toString;
         const reportsArray = Object.values(report);
         console.log(reportsArray);
-        this.setState({ reports: reportsArray, artistData: reportsArray[6]});
+        const reportsArray2 = Object.values(reportsArray[6]);
+        reportsArray2.map((report) => {
+
+        report.map((report2) => {
+            console.log(report2);
+          });
+        });
+
+        this.setState({ reports: reportsArray, artistData: reportsArray2});
     }
   }
 
@@ -132,26 +140,25 @@ class ListImage extends Component {
   }
 
   renderRowsReports() {
-    let counter = 1
     return this.state.reports.map((report, index) => {
-      if(counter!=6){
+      if(index<=5){
         return(
           <Table.Cell>{report}</Table.Cell>
         )
-      counter++
-    }
+      }
     });
   }
 
   renderRowsArtist() {
-    console.log(this.state.artistData)
-    return this.state.artistData.map((artist) => {
-        return(
-        //  <Table.Row key={index}>
-            <Table.Cell>{artist}</Table.Cell>
-        //  </Table.Row>
-        //  <Table.Cell>artist</Table.Cell>
-        )
+    return this.state.artistData.map((artist, index) => {
+      console.log(artist.artistAddress);
+          return(
+            <Table.Row key={index}>
+              <Table.Cell>{artist.artistAddress}</Table.Cell>
+              <Table.Cell>{artist.balance}</Table.Cell>
+            </Table.Row>
+          //  <Table.Cell>artist</Table.Cell>
+          )
     });
   }
 
@@ -166,6 +173,8 @@ class ListImage extends Component {
       {
         return(
         <>
+        <br></br>
+        <h3 class="report-title">Report</h3>
         <Table>
           <Table.Header>
             <Table.Row>
@@ -183,7 +192,7 @@ class ListImage extends Component {
             </Table.Row>
           </Table.Body>
         </Table>
-
+        <br></br>
         <Table>
           <Table.Header>
             <Table.Row>
@@ -192,9 +201,7 @@ class ListImage extends Component {
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            <Table.Row>
             {this.renderRowsArtist()}
-            </Table.Row>
           </Table.Body>
         </Table>
       </>
@@ -232,6 +239,8 @@ class ListImage extends Component {
     else
     {
       return(
+      <>
+      <h3 class="report-title">Request</h3>
       <Table>
         <Table.Header>
           <Table.Row>
@@ -246,6 +255,8 @@ class ListImage extends Component {
           {this.renderRows()}
         </Table.Body>
       </Table>
+      <br></br>
+      </>
     );
   }
   };
