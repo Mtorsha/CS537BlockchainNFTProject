@@ -59,7 +59,7 @@ contract Image_NFT_MarketPlace is ERC721("DAppFi", "DAPP"), ERC721URIStorage, Ow
 
         require(
             msg.value >= artists[index].artist_fees,  /* deployer must send artist fees to art_maker as it selling art_maker's art on market place and gas sent by owner while deploying the contarct must be number of images X artist fee*/
-            "Manager must pay artist fee for each token listed on the marketplace"
+            "Manager must pay artist fee"
         );
         images.push(Image(tokenCounter, manager, address(0), artists[index].price, artists[index].uri, false, false,0)); /* pushing the NFT/image into struct*/
         artists[index].registered=true;
@@ -91,8 +91,7 @@ contract Image_NFT_MarketPlace is ERC721("DAppFi", "DAPP"), ERC721URIStorage, Ow
         if(seller==manager)
             mangerIncome+=msg.value;
         images[tokenId].statusForBought = true;
-        // images[tokenId].numSales++;
-        //emit ImageBought(tokenId, images[tokenId].seller, msg.sender, price); /* this event will log details of purchase on block in blockchain and tells NFT is moved from contract to buyer*/
+        images[tokenId].numSales++;
     }
 
     function resellImage(uint256 tokenId, uint256 _price) public payable {
@@ -111,8 +110,6 @@ contract Image_NFT_MarketPlace is ERC721("DAppFi", "DAPP"), ERC721URIStorage, Ow
         images[tokenId].price = _price; /* user deciding new price of the NFT*/
         images[tokenId].seller = payable(msg.sender); /* user */
         images[tokenId].buyer = address(0);
-        // _transfer(msg.sender, address(this), tokenId); /* transfers NFT from user/seller to contract 58:40*/
-        //emit ImageRelisted(tokenId, msg.sender, _price); /* this event will log details of purchase on block in blockchain and tells NFT is moved from user/seller to contarct*/
         images[tokenId].statusForBought = false;
         images[tokenId].statusForResell = true;
     }
@@ -131,13 +128,6 @@ contract Image_NFT_MarketPlace is ERC721("DAppFi", "DAPP"), ERC721URIStorage, Ow
         return images;
     }
 
-  //  function createReport() public {
-  //      delete artistReport;
-  //      for (uint i = 0; i < artists.length; i++){
-  //          artistReport.push(ArtistReport(artists[i].artistAddress,balanceOf(artists[i].artistAddress)));
-  //      }
-  //  }
-
     function getReport() public returns (
             uint256,
             uint256,
@@ -153,12 +143,15 @@ contract Image_NFT_MarketPlace is ERC721("DAppFi", "DAPP"), ERC721URIStorage, Ow
         uint256 relisted;
 
         for (uint i = 0; i < images.length; i++){
-            if(images[i].statusForResell==true)
-                relisted++;
-            if(images[i].statusForBought==true)
-                sold++;
             if(images[i].numSales==0)
                 neverSold++;
+            if(images[i].statusForResell==true)
+                {
+                    relisted++;
+                    sold++;
+                }
+            if(images[i].statusForBought==true)
+                    sold++;
         }
         delete artistReport;
         for (uint i = 0; i < artists.length; i++){
