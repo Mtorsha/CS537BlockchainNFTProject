@@ -187,7 +187,7 @@ class ListImage extends Component {
               <Table.HeaderCell>Total Never Sold</Table.HeaderCell>
               <Table.HeaderCell>Total Sold</Table.HeaderCell>
               <Table.HeaderCell>Total Relisted</Table.HeaderCell>
-              <Table.HeaderCell>Manager Income</Table.HeaderCell>
+              <Table.HeaderCell>Manager Income(Wei)</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -201,7 +201,7 @@ class ListImage extends Component {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell>Artist Address</Table.HeaderCell>
-              <Table.HeaderCell>Artist Balance</Table.HeaderCell>
+              <Table.HeaderCell>Number of unsold items</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           <Table.Body>
