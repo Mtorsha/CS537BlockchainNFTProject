@@ -23,6 +23,7 @@ class ResellImage extends Component {
     const images = await ClickStore.methods.getImages().call();
     const manager = await ClickStore.methods.manager().call();
     this.setState({ images: images });
+    // console.log(images);
   }
 
   ResellImage = async (event) => {
@@ -43,6 +44,7 @@ class ResellImage extends Component {
   }
 
   showImage() {
+    // console.log(this.state.images);
     return this.state.images.map((image) => {
         return (
           <ImageForResell

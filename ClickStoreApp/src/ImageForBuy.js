@@ -1,11 +1,29 @@
 import React, { Component } from "react";
 import { BrowserRouter, Link, Routes, Route } from "react-router-dom";
-import { Spinner, Navbar, Nav, Card, Button, Container, Row, Col } from 'react-bootstrap'
+import { Card, Button, Container, Row, Col } from 'react-bootstrap'
 import { Grid, Form, Message, Input } from "semantic-ui-react";
 import web3 from "./web3";
 import ClickStore from "./ClickStore";
+import ResellImage from "./ResellImage";
 
 class ImageForBuy extends Component {
+
+  state = {
+    loading: false,
+    errorMessage: "",
+    user: "",
+    owner: "",
+    price_set: ""
+  };
+
+  async componentDidMount() {
+    const accounts = await web3.eth.getAccounts();
+    const user=accounts[0];
+    const owner = await ClickStore.methods.ownerOf(this.props.id).call();
+    this.setState({user, owner});
+    // console.log('hey',this.state.user, this.state.owner);
+  }
+
   buyImage = async (event) => {
     event.preventDefault();
     this.setState({ loading: true });
@@ -30,14 +48,22 @@ class ImageForBuy extends Component {
         <Card style={{ width: '12rem' }}>
           <Card.Img variant="top" style={{width: '12rem', height: '12rem'}} src={uri} />
           <Card.Body>
-            <Card.Title>Token Id : {id}</Card.Title>
-            <Card.Text>Price : {price}</Card.Text>
-            <Card.Text>Seller : {seller}</Card.Text>
-            <div>
-              {boughtStatus ? <div>Bought</div>:  <div>Not Bought</div>}
-          </div>
-          <Button loading onClick={this.buyImage}>Buy</Button>
+
+            <Card.Text>{web3.utils.fromWei(price, "ether")} Ether</Card.Text>
+              {boughtStatus ?
+                (this.state.user==this.state.owner ?
+                  (
+                <Link to="/ResellImage" className="btn btn-primary">Resell</Link>
+              )
+                :<h4>SOLD</h4> )
+                :  (
+                    <Button loading={this.state.loading} onClick={this.buyImage}>Buy</Button>
+                    )
+              }
           </Card.Body>
+          {this.state.errorMessage=="" ? null : (
+          <Message error header="Oops!" content={this.state.errorMessage} />
+        )}
         </Card>
       </Col>
     );

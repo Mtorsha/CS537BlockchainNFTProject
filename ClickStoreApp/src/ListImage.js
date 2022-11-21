@@ -10,8 +10,10 @@ import ClickStore from "./ClickStore";
 // const { Header, Row, HeaderCell, Body } = Table;
 class ListImage extends Component {
   state = {
-    loading: false,
-    errorMessage: "",
+    registerLoading: false,
+    approveLoading: false,
+    registerErrorMessage: "",
+    approveErrorMessage: "",
     artist_fee: "",
     price: "",
     url: "",
@@ -28,7 +30,7 @@ class ListImage extends Component {
 
     const manager = await ClickStore.methods.manager().call();
     this.setState({manager});
-   const accounts = await web3.eth.getAccounts();
+    const accounts = await web3.eth.getAccounts();
     this.setState({user: accounts[0]});
     const artistBalance = await ClickStore.methods.balanceOf(accounts[0]).call();
     this.setState({artistBalance});
@@ -60,7 +62,7 @@ class ListImage extends Component {
 
   onApprove= async(event, i,artist_fees) => {
       // console.log('in',i,artist_fees,web3.utils.toWei(artist_fees, "ether"));
-    this.setState({ loading: true});
+    this.setState({ approveLoading: true});
     const accounts = await web3.eth.getAccounts();
     try {
     await ClickStore.methods.mintArt(i).send({
@@ -68,15 +70,15 @@ class ListImage extends Component {
       value: artist_fees
     });
     } catch (err) {
-      this.setState({ errorMessage: err.message });
+      this.setState({ approveErrorMessage: "Manager must pay artist fee" });
     }
-    this.setState({ loading: false });
+    this.setState({ approveLoading: false });
   };
 
   onSubmitForm = async (event) => {
     event.preventDefault();
-    this.setState({ loading: true});
-
+    this.setState({ registerLoading: true});
+    this.setState({ registerErrorMessage: "" });
     try {
 
       const accounts = await web3.eth.getAccounts();
@@ -87,9 +89,9 @@ class ListImage extends Component {
       });
 
     } catch (err) {
-      this.setState({ errorMessage: err.message });
+      this.setState({ registerErrorMessage: "Price must be greater than 0" });
     }
-    this.setState({ loading: false });
+    this.setState({ registerLoading: false });
   };
 
   showForm() {
@@ -127,11 +129,13 @@ class ListImage extends Component {
                 </Grid.Row>
 
                 <br></br>
-                <Button loading={this.state.loading} primary>
+                <Button loading={this.state.registerLoading} primary>
                   Register New Art!
                 </Button>
-                <Message error header="Oops!" content={this.state.errorMessage} />
               </Form>
+              {this.state.registerErrorMessage=="" ? null : (
+              <Message error header="Oops!" content={this.state.registerErrorMessage} />
+            )}
             </Grid.Column>
           </Grid.Row>
         </Grid>
@@ -164,7 +168,7 @@ class ListImage extends Component {
 
   showReport(){
     //call getReport and show in the form of a table or cards
-    if(this.state.reports.length==0){
+    if(this.state.artists.length==0){
         return (
         <h4> There are no reports.</h4>
       )
@@ -217,11 +221,15 @@ class ListImage extends Component {
         <Table.Cell>{index+1}</Table.Cell>
         <Table.Cell>{artist.artistId}</Table.Cell>
         <Table.Cell>{artist.artistAddress}</Table.Cell>
-        <Table.Cell>{artist.artist_fees}</Table.Cell>
+        <Table.Cell>{web3.utils.fromWei(artist.artist_fees, "ether")}</Table.Cell>
         <Table.Cell>
-        <Button color="green" basic loading={this.state.loading} onClick={event => this.onApprove(event,artist.artistId,artist.artist_fees)}>
+        <Button color="green" basic loading={this.state.approveLoading} onClick={event => this.onApprove(event,artist.artistId,artist.artist_fees)}>
                   Approve
         </Button>
+        {this.state.approveErrorMessage=="" ? null : (
+        <Message error header="Oops!" content={this.state.approveErrorMessage} />
+      )}
+
         </Table.Cell>
         </Table.Row>
       );
@@ -240,14 +248,14 @@ class ListImage extends Component {
     {
       return(
       <>
-      <h3 class="report-title">Request</h3>
+      <h3 class="report-title">Pending Registration Requests</h3>
       <Table>
         <Table.Header>
           <Table.Row>
             <Table.HeaderCell>Request Number</Table.HeaderCell>
             <Table.HeaderCell>Artist ID</Table.HeaderCell>
             <Table.HeaderCell>Address</Table.HeaderCell>
-            <Table.HeaderCell>Artist Fee</Table.HeaderCell>
+            <Table.HeaderCell>Artist Fee(Ether)</Table.HeaderCell>
             <Table.HeaderCell>Mint</Table.HeaderCell>
           </Table.Row>
         </Table.Header>
@@ -255,7 +263,7 @@ class ListImage extends Component {
           {this.renderRows()}
         </Table.Body>
       </Table>
-      <br></br>
+
       </>
     );
   }
@@ -289,6 +297,7 @@ class ListImage extends Component {
           <Grid.Row>
             {this.showPendingRequests()}
           </Grid.Row>
+          <br></br>
           <Grid.Row>
             {this.showReport()}
           </Grid.Row>
