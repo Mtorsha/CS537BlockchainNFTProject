@@ -4,7 +4,8 @@ import {ethers} from 'ethers'
 import './ListImage.css';
 import { BrowserRouter, Link, Routes, Route } from "react-router-dom";
 import { Form, Button, Input, Message, Grid, Table } from "semantic-ui-react";
-
+import ipfs from './ipfs';
+import { create } from 'ipfs-http-client'
 import web3 from "./web3";
 import ClickStore from "./ClickStore";
 // const { Header, Row, HeaderCell, Body } = Table;
@@ -23,7 +24,7 @@ class ListImage extends Component {
     artistBalance: "",
     pendingArtists: [],
     reports: [],
-    artistData: [],
+    artistData: []
   };
 
   async componentDidMount() {
@@ -57,6 +58,19 @@ class ListImage extends Component {
         });
 
         this.setState({ reports: reportsArray, artistData: reportsArray2});
+    }
+  }
+  captureFile = async(event) => {
+      event.preventDefault()
+      const file = event.target.files[0]
+      console.log('file cap');
+      try {
+      const added = await ipfs.add(file)
+      const url = `https://clickstoreproject.infura-ipfs.io/ipfs/${added.path}`
+      console.log(url)
+      this.setState({ url: url });
+    } catch (error) {
+      console.log('Error uploading file: ', error)
     }
   }
 
@@ -118,13 +132,11 @@ class ListImage extends Component {
                   />
                 </Form.Field>
                 </Grid.Row>
+                <br></br>
                 <Grid.Row>
-                <Form.Field>
-                  <label>URL</label>
-                  <Input
-                    value={this.state.url}
-                    onChange={(event) => this.setState({ url: event.target.value })}
-                  />
+                <Form.Field width={16}>
+                <label>Upload Image</label>
+                <input type='file' onChange={this.captureFile} />
                 </Form.Field>
                 </Grid.Row>
 
@@ -290,10 +302,10 @@ class ListImage extends Component {
         <h2> Welcome! You are the manager of this marketplace.</h2>
       </Grid.Row>
       <Grid.Row>
-          <Grid.Column width={6}>
+          <Grid.Column width={7}>
             {this.showForm()}
           </Grid.Column>
-          <Grid.Column width={10}>
+          <Grid.Column width={8}>
           <Grid.Row>
             {this.showPendingRequests()}
           </Grid.Row>
