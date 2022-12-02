@@ -18,6 +18,8 @@ class ImageForResell extends Component {
   async componentDidMount() {
     const accounts = await web3.eth.getAccounts();
     const user=accounts[0];
+    const userBalance = await ClickStore.methods.balanceOf(accounts[0]).call();
+    this.setState({userBalance});
     const owner = await ClickStore.methods.ownerOf(this.props.id).call();
     const artist = await ClickStore.methods.artists(this.props.id).call();
     // console.log(artist);
@@ -73,8 +75,8 @@ class ImageForResell extends Component {
           )}
           </Card>
         </Col>
-      ) : <h3>You don't have items to resell</h3>
-    ) :<h3>You don't have items to resell</h3>
+      ) : null
+    ) : null
   }
       </div>
     );

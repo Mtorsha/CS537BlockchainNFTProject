@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { BrowserRouter, Link, Routes, Route } from "react-router-dom";
-import { Card, Button, Container, Row, Col } from 'react-bootstrap'
-import { Grid, Form, Message, Input } from "semantic-ui-react";
+import { Card, Container, Row, Col } from 'react-bootstrap'
+import { Grid,Button, Form, Message, Input } from "semantic-ui-react";
 import web3 from "./web3";
 import ClickStore from "./ClickStore";
 import ResellImage from "./ResellImage";

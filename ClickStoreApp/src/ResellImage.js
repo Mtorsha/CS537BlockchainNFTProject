@@ -16,10 +16,13 @@ class ResellImage extends Component {
     errorMessage: "",
     boughtItem: [],
     images: [],
+    userBalance: ""
   };
 
   async componentDidMount() {
     const accounts = await web3.eth.getAccounts();
+    const userBalance = await ClickStore.methods.balanceOf(accounts[0]).call();
+    this.setState({userBalance});
     const images = await ClickStore.methods.getImages().call();
     const manager = await ClickStore.methods.manager().call();
     this.setState({ images: images });
@@ -45,7 +48,13 @@ class ResellImage extends Component {
 
   showImage() {
     // console.log(this.state.images);
-    return this.state.images.map((image) => {
+    if (this.state.userBalance==0){
+      return (
+        <h3>You don't have items to resell</h3>
+      );
+    }
+    else
+    {return this.state.images.map((image) => {
         return (
           <ImageForResell
             id={image.tokenId}
@@ -56,7 +65,7 @@ class ResellImage extends Component {
             resellStatus={image.statusForResell}
           />
         );
-    });
+    });}
   }
 
   render() {
